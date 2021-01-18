@@ -9,7 +9,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary">查询</el-button>
-          <el-button type="success" icon="el-icon-plus" circle >取消</el-button><!--@click="showAddFrom"-->
+          <el-button type="success">取消</el-button><!--@click="showAddFrom"-->
         </el-form-item>
       </el-form>
       <!--查询列表-->
@@ -51,15 +51,15 @@
            <!-- &lt;!&ndash; 自定义模板  &ndash;&gt;-->
             <template slot-scope="scope">
               <el-button
-                type="primary" icon="el-icon-edit"
+                type="warning" icon="el-icon-edit"
                 size="mini"
                 >修改</el-button><!--@click="toUpdate(scope.$index, scope.row)"-->
 
 
-              <el-button> 编辑</el-button>
+              <el-button type="warning"> 编辑</el-button>
 
               <el-button
-                type="primary" icon="el-icon-edit"
+                type="info" icon="el-icon-eleme"
                 size="mini"
                 @click="ShowValue(scope.$index, scope.row)">属性值维护</el-button>
 
@@ -81,16 +81,81 @@
 
       <!--  属性值的维护数据  -->
       <el-dialog title="属性值信息" :visible.sync="ShowValueTable" width="400">
+        <el-button
+          type="danger" icon="el-icon-edit"
+          size="mini"
+          @click="addValue"
+        >新增</el-button>
         <el-table :data="gridData">
           <el-table-column property="name" label="属性" width="150"></el-table-column>
           <el-table-column property="nameCH" label="中文" width="200"></el-table-column>
 
 
+          <el-table-column
+            prop="cid"
+            label="操作">
+            <!-- &lt;!&ndash; 自定义模板  &ndash;&gt;-->
+            <template slot-scope="scope">
+              <el-button
+                type="warning" icon="el-icon-edit"
+                size="mini"
+                @click="toUpdate(scope.$index, scope.row)"
+              >修改</el-button>
+              <el-button
+                type="danger" icon="el-icon-edit"
+                size="mini"
+               >删除</el-button><!-- @click="ShowValue(scope.$index, scope.row)"-->
 
+            </template>
+
+          </el-table-column>
 
 
 
         </el-table>
+      </el-dialog>
+
+      <!--子表新增-->
+      <el-dialog title="新增属性值"  :visible.sync="addValueHtml"  >
+        <el-form ref="addproValue"  :model="addproValue" label-width="180px"  >
+
+
+          <el-form-item label="属性值名称" prop="name">
+            <el-input v-model="addproValue.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="属性值中文名" prop="nameCH">
+            <el-input v-model="addproValue.nameCH"></el-input>
+          </el-form-item>
+
+          <el-form-item label="pid" prop="nameCH">
+            <el-input v-model="addproValue.propId"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="addproValueSubmit('addproValue')">立即新增</el-button>
+
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+
+      <!--子属性的修改-->
+      <el-dialog title="修改属性值"  :visible.sync="updateValueHtml"  >
+        <el-form ref="updateproValue" :model="updateproValue" label-width="180px"  >
+
+          <el-form-item label="属性值名称" prop="name">
+            <el-input v-model="updateproValue.name"></el-input>
+          </el-form-item>
+
+          <el-form-item label="属性值中文名" prop="nameCH">
+            <el-input v-model="updateproValue.nameCH"></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="updateValueSubmit('updateproValue')">立即修改</el-button>
+
+          </el-form-item>
+        </el-form>
       </el-dialog>
 
 
@@ -155,6 +220,16 @@
             {"id":12,name:"分类/家电/洗衣机"},
             {"id":13,name:"分类/家电/冰箱"}],
           Propdata:[],
+/*id:"",
+            name:"",
+            nameCH:"",
+            typeId:"",
+            type:"",
+            isSKU:"",
+            isDel:"",
+            createDate:"",
+            updateDate:"",
+            author:"",*/
 
           /*分页*/
           page:1,
@@ -164,7 +239,17 @@
           /*属性值维护*/
           ShowValueTable:false,
           gridData:[],
-
+          /*子表新增*/
+          addValueHtml:false,
+          addproValue:{
+            name:"",
+            nameCH:"",
+            propId:""
+          },
+          updateproValue:{
+            name:"",
+            nameCH:""
+          },updateValueHtml:false,
         }
       },created:function(){
         this.queryData();
@@ -192,7 +277,8 @@
           })
         },
         ShowValue:function (index , row) {
-
+          this.addproValue.propId=row.id;
+          this.updateproValue.propId=row.id;
           this.ShowValueTable = true;
           this.gridData.propId = row.id;
           this.queryDataValue(row.id);
@@ -203,6 +289,25 @@
 
             this.gridData=res.data.data;
 
+          })
+        },
+        addValue:function () {
+          this.addValueHtml = true;
+          this.addproValue={}
+
+        },
+        addproValueSubmit:function (addproValue) {
+          this.$ajax.post("http://localhost:8080/api/propvalue/add",this.$qs.stringify(this.addproValue)).then(res=>{
+            this.addValueHtml = false;
+            this.queryDataValue(this.addproValue.propId);
+          })
+        },toUpdate:function (index,row) {
+          this.updateValueHtml = true;
+          this.updateproValue = row;
+        },updateValueSubmit:function (updateproValue) {
+          this.$ajax.post("http://localhost:8080/api/propvalue/update",this.$qs.stringify(this.updateproValue)).then(res=>{
+            this.updateValueHtml = false;
+            this.queryDataValue(this.updateproValue.propId);
           })
         }
 
